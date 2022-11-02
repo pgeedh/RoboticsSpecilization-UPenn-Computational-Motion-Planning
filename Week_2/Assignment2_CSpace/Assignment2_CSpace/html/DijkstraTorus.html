@@ -1,0 +1,393 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DijkstraTorus</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-01"><meta name="DC.source" content="DijkstraTorus.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">All of your code should be between the two lines of stars.</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> route = DijkstraTorus (input_map, start_coords, dest_coords)
+<span class="comment">% Run Dijkstra's algorithm on a grid.</span>
+<span class="comment">% Inputs :</span>
+<span class="comment">%   input_map : a logical array where the freespace cells are false or 0 and</span>
+<span class="comment">%      the obstacles are true or 1</span>
+<span class="comment">%   start_coords and dest_coords : Coordinates of the start and end cell</span>
+<span class="comment">%       respectively, the first entry is the row and the second the column.</span>
+<span class="comment">% Output :</span>
+<span class="comment">%   route : An array containing the linear indices of the cells along the</span>
+<span class="comment">%    shortest route from start to dest or an empty array if there is no</span>
+<span class="comment">%    route.</span>
+
+<span class="comment">% set up color map for display</span>
+<span class="comment">% 1 - white - clear cell</span>
+<span class="comment">% 2 - black - obstacle</span>
+<span class="comment">% 3 - red = visited</span>
+<span class="comment">% 4 - blue  - on list</span>
+<span class="comment">% 5 - green - start</span>
+<span class="comment">% 6 - yellow - destination</span>
+
+cmap = [1 1 1; <span class="keyword">...</span>
+        0 0 0; <span class="keyword">...</span>
+        1 0 0; <span class="keyword">...</span>
+        0 0 1; <span class="keyword">...</span>
+        0 1 0; <span class="keyword">...</span>
+        1 1 0];
+
+colormap(cmap);
+
+
+[nrows, ncols] = size(input_map);
+
+<span class="comment">% map - a table that keeps track of the state of each grid cell</span>
+map = zeros(nrows,ncols);
+
+map(~input_map) = 1;  <span class="comment">% Mark free cells</span>
+map(input_map)  = 2;  <span class="comment">% Mark obstacle cells</span>
+
+<span class="comment">% Generate linear indices of start and dest nodes</span>
+start_node = sub2ind(size(map), start_coords(1), start_coords(2));
+dest_node  = sub2ind(size(map), dest_coords(1),  dest_coords(2));
+
+map(start_node) = 5;
+map(dest_node)  = 6;
+
+<span class="comment">% Initialize distance array</span>
+distances = Inf(nrows,ncols);
+
+<span class="comment">% For each grid cell this array holds the index of its parent</span>
+parent = zeros(nrows,ncols);
+
+distances(start_node) = 0;
+
+<span class="comment">% Main Loop</span>
+<span class="keyword">while</span> true
+
+    <span class="comment">% Draw current map</span>
+    map(start_node) = 5;
+    map(dest_node) = 6;
+
+    image(1.5, 1.5, map);
+    grid <span class="string">on</span>;
+    axis <span class="string">image</span>;
+    drawnow;
+
+    <span class="comment">% Find the node with the minimum distance</span>
+    [min_dist, current] = min(distances(:));
+
+    <span class="keyword">if</span> ((current == dest_node) || isinf(min_dist))
+        <span class="keyword">break</span>;
+    <span class="keyword">end</span>;
+
+    <span class="comment">% Update map</span>
+    map(current) = 3;         <span class="comment">% mark current node as visited</span>
+    distances(current) = Inf; <span class="comment">% remove this node from further consideration</span>
+
+    <span class="comment">% Compute row, column coordinates of current node</span>
+    [i, j] = ind2sub(size(distances), current);
+
+    <span class="comment">% Visit each neighbor of the current node and update the map, distances</span>
+    <span class="comment">% and parent tables appropriately.</span>
+</pre><h2 id="2">All of your code should be between the two lines of stars.</h2><p>*****************************************************************</p><pre class="codeinput">    x = 0;
+    y = 0;
+
+    <span class="keyword">if</span>( (i+1) &lt;= nrows &amp;&amp; (i-1) &gt;= 1 &amp;&amp; (j+1) &lt;= ncols &amp;&amp; (j-1) &gt;= 1 )
+        <span class="keyword">if</span> (j+1) &lt;= ncols
+            x = i;
+            y = j+1;
+            update(x,y,minm_dist+1,current);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (j-1) &gt;= 1
+            x = i;
+            y = j-1;
+            update(x,y,minm_dist+1,current);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (i+1) &lt;= nrows
+            x = i+1;
+            y = j;
+            update(x,y,minm_dist+1,current);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (i-1) &gt;= 1
+            x = i-1;
+            y = j;
+            update(x,y,minm_dist+1,current);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+     <span class="keyword">if</span>(i&lt;=1)
+        x = 180;
+        y = j;
+        update(x,y,minm_dist+1,current);
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">if</span>(i&gt;=180)
+        x = 1;
+        y = j;
+        update(x,y,minm_dist+1,current);
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">if</span>(j&lt;=1)
+        x = i;
+        y = 180;
+        update(x,y,minm_dist+1,current);
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">if</span>(j&gt;=180)
+        x = i;
+        y = 1;
+        update(x,y,minm_dist+1,current);
+    <span class="keyword">end</span>
+
+    <span class="comment">% *******************************************************************</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (isinf(distances(dest_node)))
+    route = [];
+<span class="keyword">else</span>
+    route = [dest_node];
+
+    <span class="keyword">while</span> (parent(route(1)) ~= 0)
+        route = [parent(route(1)), route];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+    <span class="keyword">function</span> update (i,j,d,p)
+        <span class="keyword">if</span> ( (map(i,j) ~= 2) &amp;&amp; (map(i,j) ~= 3) &amp;&amp; (map(i,j) ~= 5) &amp;&amp; (distances(i,j) &gt; d) )
+            distances(i,j) = d;
+            map(i,j) = 4;
+            parent(i,j) = p;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in DijkstraTorus (line 31)
+[nrows, ncols] = size(input_map);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function route = DijkstraTorus (input_map, start_coords, dest_coords)
+% Run Dijkstra's algorithm on a grid.
+% Inputs : 
+%   input_map : a logical array where the freespace cells are false or 0 and
+%      the obstacles are true or 1
+%   start_coords and dest_coords : Coordinates of the start and end cell
+%       respectively, the first entry is the row and the second the column.
+% Output :
+%   route : An array containing the linear indices of the cells along the
+%    shortest route from start to dest or an empty array if there is no
+%    route.
+
+% set up color map for display
+% 1 - white - clear cell
+% 2 - black - obstacle
+% 3 - red = visited
+% 4 - blue  - on list
+% 5 - green - start
+% 6 - yellow - destination
+
+cmap = [1 1 1; ...
+        0 0 0; ...
+        1 0 0; ...
+        0 0 1; ...
+        0 1 0; ...
+        1 1 0];
+
+colormap(cmap);
+
+
+[nrows, ncols] = size(input_map);
+
+% map - a table that keeps track of the state of each grid cell
+map = zeros(nrows,ncols);
+
+map(~input_map) = 1;  % Mark free cells
+map(input_map)  = 2;  % Mark obstacle cells
+
+% Generate linear indices of start and dest nodes
+start_node = sub2ind(size(map), start_coords(1), start_coords(2));
+dest_node  = sub2ind(size(map), dest_coords(1),  dest_coords(2));
+
+map(start_node) = 5;
+map(dest_node)  = 6;
+
+% Initialize distance array
+distances = Inf(nrows,ncols);
+
+% For each grid cell this array holds the index of its parent
+parent = zeros(nrows,ncols);
+
+distances(start_node) = 0;
+
+% Main Loop
+while true
+    
+    % Draw current map
+    map(start_node) = 5;
+    map(dest_node) = 6;
+    
+    image(1.5, 1.5, map);
+    grid on;
+    axis image;
+    drawnow;
+    
+    % Find the node with the minimum distance
+    [min_dist, current] = min(distances(:));
+    
+    if ((current == dest_node) || isinf(min_dist))
+        break;
+    end;
+    
+    % Update map
+    map(current) = 3;         % mark current node as visited
+    distances(current) = Inf; % remove this node from further consideration
+    
+    % Compute row, column coordinates of current node
+    [i, j] = ind2sub(size(distances), current);
+    
+    % Visit each neighbor of the current node and update the map, distances
+    % and parent tables appropriately.
+   
+    %%% All of your code should be between the two lines of stars. 
+    % *******************************************************************
+    x = 0;
+    y = 0;
+    
+    if( (i+1) <= nrows && (i-1) >= 1 && (j+1) <= ncols && (j-1) >= 1 )
+        if (j+1) <= ncols
+            x = i;
+            y = j+1;
+            update(x,y,minm_dist+1,current);
+        end
+        if (j-1) >= 1
+            x = i;
+            y = j-1;
+            update(x,y,minm_dist+1,current);
+        end
+        if (i+1) <= nrows
+            x = i+1;
+            y = j;
+            update(x,y,minm_dist+1,current);
+        end
+        if (i-1) >= 1
+            x = i-1;
+            y = j;
+            update(x,y,minm_dist+1,current);
+        end
+    end
+    
+     if(i<=1)
+        x = 180;
+        y = j;
+        update(x,y,minm_dist+1,current);
+    end
+    
+    
+    if(i>=180)
+        x = 1;
+        y = j;
+        update(x,y,minm_dist+1,current);
+    end
+    
+    
+    if(j<=1)
+        x = i;
+        y = 180;
+        update(x,y,minm_dist+1,current);
+    end
+    
+    
+    if(j>=180)
+        x = i;
+        y = 1;
+        update(x,y,minm_dist+1,current);
+    end
+    
+    % *******************************************************************
+end
+
+if (isinf(distances(dest_node)))
+    route = [];
+else
+    route = [dest_node];
+    
+    while (parent(route(1)) ~= 0)
+        route = [parent(route(1)), route];
+    end
+end
+
+    function update (i,j,d,p)
+        if ( (map(i,j) ~= 2) && (map(i,j) ~= 3) && (map(i,j) ~= 5) && (distances(i,j) > d) )
+            distances(i,j) = d;
+            map(i,j) = 4;
+            parent(i,j) = p;
+        end
+    end
+
+end
+
+##### SOURCE END #####
+--></body></html>
