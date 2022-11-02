@@ -1,4 +1,4 @@
-<h1>Coursera Robotics Specialization- Aerial Robotics</h1>
+<h1>Coursera Robotics Specialization- Computational Motion Planning</h1>
 <h4>Instructor</h4> 
 <h5>Prof. CJ Taylor</h5>Professor of Computer and Information Science
 This repository contains the solutions from all the programming assignements and quiz in this Coursera Course.
